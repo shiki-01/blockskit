@@ -94,71 +94,47 @@
 		document.removeEventListener(isTouch ? 'touchend' : 'pointerup', handlePointerUp);
 	}
 
-	function setDragState(targetElement: HTMLElement, clientX: number, clientY: number, block: Block) {
+	function handlePointerDown(event: PointerEvent, block: Block) {
+		event.preventDefault();
+		if (typeof window === 'undefined' || !mainElement) return;
+
+		isTouch = event.pointerType.startsWith('touch');
+		const { clientX, clientY } = getClientPosition(event);
+
+		const targetElement = event.currentTarget as HTMLElement;
 		const boundingRect = targetElement.getBoundingClientRect();
+		const stageRect = mainElement.getBoundingClientRect();
 
-		const offsetDetailX = clientX - boundingRect.left;
-		const offsetDetailY = clientY - boundingRect.top;
+		dragOffsetDetail = { x: clientX - boundingRect.left, y: clientY - boundingRect.top };
+		dragPosition = { x: clientX - stageRect.left, y: clientY - stageRect.top };
 
-		const xOffsetGrid = Math.floor(offsetDetailX / 32);
-		const yOffsetGrid = Math.floor(offsetDetailY / 32);
+		const x = Math.floor(dragOffsetDetail.x / 32);
+		const y = Math.floor(dragOffsetDetail.y / 32);
 
-		dragOffset = { x: xOffsetGrid, y: yOffsetGrid };
-		dragOffsetDetail = { x: offsetDetailX, y: offsetDetailY };
-		draggedBlock=block
+		dragOffset = { x, y };
+		draggedBlock = block;
+		suggested = [];
+
+		addEventListeners();
 	}
 
-	function getDropPosition(event: PointerEvent | TouchEvent): Position | null {
-		if (!stageElement) return null;
-		const { clientX, clientY } = getClientPosition(event);
-		const rect = stageElement.getBoundingClientRect();
+	function handlePointerUp(event: PointerEvent | TouchEvent) {
+		event.preventDefault();
+		if (typeof window === 'undefined') return;
 
-		if (
-			clientX >= rect.left &&
-			clientX <= rect.right &&
-			clientY >= rect.top &&
-			clientY <= rect.bottom
-		) {
-			return {
-				x: Math.floor((clientX - rect.left) / 32),
-				y: Math.floor((clientY - rect.top) / 32),
-			};
+		isTouch = event.type.startsWith('touch');
+		removeEventListeners();
+
+		if (stageElement && dragPosition && dragOffset) {
+			const targetRect = stageElement.getBoundingClientRect();
+			const { clientX, clientY } = getClientPosition(event);
+			if (targetRect.left <= clientX && clientX <= targetRect.right && targetRect.top <= clientY && clientY <= targetRect.bottom) {
+				const x = Math.floor((clientX - targetRect.left) / 32);
+				const y = Math.floor((clientY - targetRect.top) / 32);
+				handlePointerDrop(event, x, y);
+			}
 		}
-		return null;
-	}
 
-	function getDragPosition(event: PointerEvent | TouchEvent): Position | null {
-		if (!mainElement) return null;
-		const { clientX, clientY } = getClientPosition(event);
-		const rect = mainElement.getBoundingClientRect();
-
-		return {
-			x: clientX - rect.left,
-			y: clientY - rect.top,
-		};
-	}
-
-	function updateSuggestedPlacement(position: Position): void {
-		if (!draggedBlock || !dragOffset) return;
-
-		const startX = Math.floor(position.x / 32) - dragOffset.x;
-		const startY = Math.floor(position.y / 32) - dragOffset.y;
-
-		suggested = canPlaceBlock(draggedBlock.shape, startX, startY)
-			? draggedBlock.shape.flatMap((row, rowIndex) =>
-				row.split('').map((cell, colIndex) =>
-					cell === '-' ? { x: startX + colIndex, y: startY + rowIndex } : { x: -1, y: -1 }
-				)
-			).filter(Boolean)
-			: [];
-	}
-
-	function finalizePlacement(): void {
-		handBlocks = handBlocks.filter(block => block !== draggedBlock);
-		if (handBlocks.length === 0) nextTurn();
-	}
-
-	function resetDragState(): void {
 		draggedBlock = null;
 		dragOffset = null;
 		dragOffsetDetail = null;
@@ -166,54 +142,71 @@
 		suggested = [];
 	}
 
-	function handlePointerDown(event: PointerEvent, block: Block) {
-		event.preventDefault();
-		isTouch = event.pointerType === 'touch';
+	function handlePointerOver(event: PointerEvent | TouchEvent, x: number, y: number) {
+		if (event.cancelable) event.preventDefault();
+		if (!draggedBlock || !dragOffset) return;
+
+		const startX = x - dragOffset.x;
+		const startY = y - dragOffset.y;
+
+		if (canPlaceBlock(draggedBlock.shape, startX, startY)) {
+			suggested = [];
+			for (let i = 0; i < draggedBlock.shape.length; i++) {
+				for (let j = 0; j < draggedBlock.shape[i].length; j++) {
+					if (draggedBlock.shape[i][j] === '-') {
+						suggested.push({ x: startX + j, y: startY + i });
+					}
+				}
+			}
+		} else {
+			suggested = [];
+		}
+	}
+
+	function handlePointerDrop(event: PointerEvent | TouchEvent, x: number, y: number) {
+		if (event.cancelable) event.preventDefault();
+		if (!draggedBlock || !dragOffset) return;
+
+		const startX = x - dragOffset.x;
+		const startY = y - dragOffset.y;
+
+		if (canPlaceBlock(draggedBlock.shape, startX, startY)) {
+			placeBlock(draggedBlock, startX, startY);
+			handBlocks = handBlocks.filter((block) => block !== draggedBlock);
+			draggedBlock = null;
+			dragOffset = null;
+
+			if (handBlocks.length === 0) nextTurn();
+
+			isGameOver();
+		}
+	}
+
+	function handleDragBlock(event: PointerEvent | TouchEvent) {
+		if (!draggedBlock || !dragOffset) return;
 
 		const { clientX, clientY } = getClientPosition(event);
+		const stageRect = mainElement!.getBoundingClientRect();
 
-		if (!mainElement) return;
+		dragPosition = { x: clientX - stageRect.left, y: clientY - stageRect.top };
 
-		setDragState(event.currentTarget as HTMLElement, clientX, clientY, block);
-
-		addEventListeners();
-	}
-
-	function handlePointerUp(event: PointerEvent | TouchEvent): void {
-		event.preventDefault();
-		if (!draggedBlock || !dragOffset) return;
-
-		removeEventListeners();
-
-		const dropPosition = getDropPosition(event);
-		if (dropPosition && canPlaceBlock(draggedBlock.shape, dropPosition.x, dropPosition.y)) {
-			placeBlock(draggedBlock, dropPosition.x, dropPosition.y);
-			finalizePlacement();
-		}
-
-		resetDragState();
-	}
-
-	function handleDragBlock(event: PointerEvent | TouchEvent): void {
-		if (!draggedBlock || !dragOffset) return;
-
-		const currentDragPosition = getDragPosition(event);
-		if (currentDragPosition) {
-			dragPosition = currentDragPosition;
-			updateSuggestedPlacement(currentDragPosition);
+		if (stageElement) {
+			const targetRect = stageElement.getBoundingClientRect();
+			const x = Math.floor((clientX - targetRect.left) / 32);
+			const y = Math.floor((clientY - targetRect.top) / 32);
+			handlePointerOver(event, x, y);
 		}
 	}
 
 	function canPlaceBlock(block: string[], x: number, y: number): boolean {
-		return block.every((row, rowIndex) =>
-			row.split('').every((cell, colIndex) => {
-				if (cell === '-') {
-					const targetCell = stage[y + rowIndex]?.[x + colIndex];
-					return targetCell && targetCell.value === null;
+		for (let i = 0; i < block.length; i++) {
+			for (let j = 0; j < block[i].length; j++) {
+				if (block[i][j] === '-' && (stage[y + i]?.[x + j]?.value !== null || x + j >= 9 || y + i >= 9)) {
+					return false;
 				}
-				return true;
-			})
-		);
+			}
+		}
+		return true;
 	}
 
 	function canPlaceAnyBlock(): boolean {
@@ -228,13 +221,13 @@
 	}
 
 	function placeBlock(block: Block, x: number, y: number): void {
-		block.shape.forEach((row, rowIndex) => {
-			row.split('').forEach((cell, colIndex) => {
-				if (cell === '-') {
-					stage[y + rowIndex][x + colIndex] = { value: '-', color: block.color };
+		for (let i = 0; i < block.shape.length; i++) {
+			for (let j = 0; j < block.shape[i].length; j++) {
+				if (block.shape[i][j] === '-') {
+					stage[y + i][x + j] = { value: '-', color: block.color };
 				}
-			});
-		});
+			}
+		}
 		checkAndClearLines();
 	}
 
