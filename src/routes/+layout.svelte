@@ -1,7 +1,17 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
 	import '../app.css';
     import '@fontsource-variable/lexend-exa';
+
 	let { children } = $props();
+
+    onMount(() => {
+		if ('serviceWorker' in navigator) {
+			navigator.serviceWorker.register('/service-worker.js', {
+				type: 'module'
+			});
+		}
+	});
 </script>
 
 <main class="touch-none select-none flex justify-center items-center w-[100dvw] h-[100dvh]">
