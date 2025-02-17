@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import '../app.css';
-    import '@fontsource-variable/lexend-exa';
+	import '@fontsource-variable/lexend-exa';
 
 	let { children } = $props();
 
-    onMount(() => {
+	onMount(() => {
 		if ('serviceWorker' in navigator) {
 			navigator.serviceWorker.register('/service-worker.js', {
 				type: 'module'
@@ -15,17 +15,17 @@
 </script>
 
 <main class="touch-none select-none flex justify-center items-center w-[100dvw] h-[100dvh]">
-    <div
-            class="relative"
-            style="
+	<div
+		class="relative"
+		style="
             width: min(100%, calc(100vh * 9 / 16));
             height: min(100%, calc(100vw * 16 / 9));
             aspect-ratio: 9 / 16;
             min-width: 200px;
         "
-    >
-        {@render children()}
-    </div>
+	>
+		{@render children()}
+	</div>
 </main>
 
 <style>
