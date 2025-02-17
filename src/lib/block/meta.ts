@@ -29,7 +29,8 @@ const blockMeta: BlockMeta = {
     ],
     squares: [
         { shape: ['--', '--'], weight: 4 },
-        { shape: ['---', '---', '---'], weight: 2 }
+        { shape: ['---', '---', '---'], weight: 2 },
+        { shape: ['---', '---'], weight: 3 }
     ],
     obliques: [
         { shape: ['-..', '.-.', '..-'], weight: 2 },
