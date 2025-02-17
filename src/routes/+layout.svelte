@@ -4,7 +4,7 @@
 	let { children } = $props();
 </script>
 
-<main class="touch-none flex justify-center items-center w-[100dvw] h-[100dvh]">
+<main class="touch-none select-none flex justify-center items-center w-[100dvw] h-[100dvh]">
     <div
             class="relative"
             style="

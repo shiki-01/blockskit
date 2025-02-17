@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { step, level } from '$lib';
+	import Icon from '@iconify/svelte';
+	import { step, level, score, pause } from '$lib';
 	import blockMeta from '$lib/block/meta';
 
 	type Position = { x: number; y: number };
@@ -12,7 +13,6 @@
 	let stageElement: HTMLElement | null = null;
 
 	let handBlocks: Block[] = [];
-	let score: number = 0;
 	let stage: Array<Array<{ value: string | null; color: string | null }>> = createEmptyStage(stageSize);
 	let draggedBlock: Block | null = null;
 	let dragOffset: Position | null = null;
@@ -67,7 +67,7 @@
 
 	function initializeGame() {
 		stage = createEmptyStage(stageSize);
-		score = 0;
+		score.set(0);
 		handBlocks = getRandomBlocks();
 	}
 
@@ -246,7 +246,7 @@
 		rowsToClear.forEach((row) => stage[row].forEach((cell) => Object.assign(cell, { value: null, color: null })));
 		colsToClear.forEach((col) => stage.forEach((row) => Object.assign(row[col], { value: null, color: null })));
 
-		score += rowsToClear.length + colsToClear.length;
+		score.update(v => v + rowsToClear.length + colsToClear.length);
 	}
 
 	function isGameOver() {
@@ -266,7 +266,13 @@
 </script>
 
 <div bind:this={mainElement} style="--stageSize:{stageSize};" class="relative w-full flex flex-col items-center gap-4">
-	<p>スコア:{score}</p>
+	
+	<div class="flex flex-row gap-4 items-center justify-center">
+		<p>スコア:{$score}</p>
+		<button onclick={() => pause.set(true)}>
+			<Icon icon="ic:round-pause" class="w-6 h-6" />
+		</button>
+	</div>
 
 	<!-- ステージ -->
 	<div bind:this={stageElement} class="grid touch-none" role="application" aria-dropeffect="move">
@@ -421,6 +427,6 @@
     .dragging-block {
         position: absolute;
         pointer-events: none;
-        z-index: 100;
+        z-index: 3;
     }
 </style>
