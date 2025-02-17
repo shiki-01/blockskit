@@ -188,7 +188,13 @@
 		const { clientX, clientY } = getClientPosition(event);
 		const stageRect = mainElement!.getBoundingClientRect();
 
-		dragPosition = { x: clientX - stageRect.left, y: clientY - stageRect.top };
+		const deltaX = (clientX - stageRect.left) - dragPosition!.x;
+		const deltaY = (clientY - stageRect.top) - dragPosition!.y;
+
+		dragPosition = {
+			x: dragPosition!.x + deltaX * 1.5,
+			y: dragPosition!.y + deltaY * 1.5
+		};
 
 		if (stageElement) {
 			const targetRect = stageElement.getBoundingClientRect();
@@ -268,7 +274,7 @@
 <div bind:this={mainElement} style="--stageSize:{stageSize};" class="relative w-full flex flex-col items-center gap-4">
 	
 	<div class="flex flex-row gap-4 items-center justify-center">
-		<p>スコア:{$score}</p>
+		<p>score:{$score}</p>
 		<button onclick={() => pause.set(true)}>
 			<Icon icon="ic:round-pause" class="w-6 h-6" />
 		</button>
@@ -308,7 +314,7 @@
 		</div>
 	{/if}
 
-	<h2>手持ちブロック</h2>
+	<h2>Next Block</h2>
 	<div class="flex flex-row gap-4">
 		{#each handBlocks as block}
 			<div
