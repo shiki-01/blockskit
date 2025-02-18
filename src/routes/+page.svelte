@@ -1,12 +1,7 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
-    import {step as step$, theme as theme$, level as level$, score as score$, pause as pause$, preStar} from "$lib";
+    import {step, theme, level, score, pause, preStar} from "$lib/index.svelte";
     import ColorBlocks from "$lib/components/ColorBlocks.svelte";
-
-    const step = $state(step$)
-    const level = $state(level$)
-    const score = $state(score$)
-    const pause = $state(pause$)
 </script>
 
 <div class="w-full h-full relative flex flex-col items-center py-10 text-sky-50 gap-10">
@@ -21,7 +16,10 @@
                 onclick={() => step.set(1)}
         >Next</button>
     {:else if $step === 1 || $step === 2}
-        <h1 class="text-xl font-bold">Color Blocks !</h1>
+        <button
+        onclick={() => step.set(0)}
+            class="text-xl font-bold"
+        >Color Blocks !</button>
         <ColorBlocks/>
         {#if $step === 2}
             <h1>Game Over !</h1>

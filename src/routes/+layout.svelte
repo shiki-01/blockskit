@@ -18,6 +18,15 @@
 					console.error('Service Worker registration failed:', error);
 				});
 		}
+
+		let lastTouched: number = 0;
+		document.addEventListener('touchend', (event) => {
+			const now = new Date().getTime();
+			if (now - lastTouched <= 300) {
+				event.preventDefault();
+			}
+			lastTouched = now;
+		})
 	});
 </script>
 

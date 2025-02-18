@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Icon from '@iconify/svelte';
-	import { step, level, score, pause } from '$lib';
+	import { step, level, score, pause } from '$lib/index.svelte';
 	import blockMeta from '$lib/block/meta';
 
 	type Position = { x: number; y: number };
