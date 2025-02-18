@@ -7,14 +7,21 @@
 
 	onMount(() => {
 		if ('serviceWorker' in navigator) {
-			navigator.serviceWorker.register('/service-worker.js', {
-				type: 'module'
-			});
+			navigator.serviceWorker
+				.register('/service-worker.js', {
+					type: 'module'
+				})
+				.then((registration) => {
+					console.log('Service Worker registered with scope:', registration.scope);
+				})
+				.catch((error) => {
+					console.error('Service Worker registration failed:', error);
+				});
 		}
 	});
 </script>
 
-<main class="touch-none select-none flex justify-center items-center w-[100dvw] h-[100dvh]">
+<main class="flex h-[100dvh] w-[100dvw] touch-none items-center justify-center select-none">
 	<div
 		class="relative"
 		style="
@@ -29,8 +36,8 @@
 </main>
 
 <style>
-    :global(body) {
-        font-family: 'Lexend Exa Variable', sans-serif;
-        background-color: #162833FF;
-    }
+	:global(body) {
+		font-family: 'Lexend Exa Variable', sans-serif;
+		background-color: #162833ff;
+	}
 </style>

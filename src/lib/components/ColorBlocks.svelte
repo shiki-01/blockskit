@@ -12,14 +12,14 @@
 	let mainElement: HTMLElement | null = null;
 	let stageElement: HTMLElement | null = null;
 
-	let handBlocks: Block[] = [];
-	let stage: Array<Array<{ value: string | null; color: string | null }>> = createEmptyStage(stageSize);
-	let draggedBlock: Block | null = null;
-	let dragOffset: Position | null = null;
-	let dragOffsetDetail: Position | null = null;
-	let dragPosition: Position | null = null;
-	let suggested: Position[] = [];
-	let isTouch: boolean = false;
+	let handBlocks: Block[] = $state([]);
+	let stage: Array<Array<{ value: string | null; color: string | null }>> = $state(createEmptyStage(stageSize));
+	let draggedBlock: Block | null = $state(null);
+	let dragOffset: Position | null = $state(null);
+	let dragOffsetDetail: Position | null = $state(null);
+	let dragPosition: Position | null = $state(null);
+	let suggested: Position[] = $state([]);
+	let isTouch: boolean = $state(false);
 
 	const colors = [
 		'#D9B632',
