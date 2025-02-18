@@ -1,1 +1,86 @@
-const e=location.pathname.split("/").slice(0,-1).join("/"),m=[e+"/_app/immutable/entry/app.B4qkyNBA.js",e+"/_app/immutable/nodes/0.BuQ2TACW.js",e+"/_app/immutable/assets/0.DmjL_DMq.css",e+"/_app/immutable/assets/lexend-exa-vietnamese-wght-normal.BqEInZJ8.woff2",e+"/_app/immutable/assets/lexend-exa-latin-ext-wght-normal.DMsM4UPS.woff2",e+"/_app/immutable/assets/lexend-exa-latin-wght-normal.osWSC2nP.woff2",e+"/_app/immutable/nodes/1.ChGskbNl.js",e+"/_app/immutable/nodes/2.jMzO1dKk.js",e+"/_app/immutable/assets/2.DPI_R4TA.css",e+"/_app/immutable/chunks/BCQ4AXhQ.js",e+"/_app/immutable/chunks/CYGA8lVB.js",e+"/_app/immutable/chunks/D4k4vJAq.js",e+"/_app/immutable/chunks/DMqeO2by.js",e+"/_app/immutable/chunks/DhWqEYSG.js",e+"/_app/immutable/chunks/ZAsNvhcv.js",e+"/_app/immutable/entry/start.G0BxHlCH.js"],p=[e+"/.nojekyll",e+"/favicon.png",e+"/manifest.json"],i="sudokit-cache-",o="1",c=`${i}${o}`,h=["/",...m,...p];self.addEventListener("install",t=>{t.waitUntil(caches.open(c).then(s=>s.addAll(h)))});self.addEventListener("activate",t=>{t.waitUntil(caches.keys().then(s=>Promise.all(s.map(a=>{if(a.startsWith(i)&&a!==c)return caches.delete(a)}))))});self.addEventListener("fetch",t=>{t.request.method==="GET"&&(t.request.url.startsWith("chrome-extension://")||t.respondWith(caches.match(t.request).then(s=>s||fetch(t.request).then(a=>{if(!a||a.status!==200||a.type!=="basic")return a;const n=a.clone();return caches.open(c).then(r=>{r.put(t.request,n).then(u=>u)}),a}).catch(()=>caches.match("/")))))});self.addEventListener("sync",t=>{t.tag==="sync-updates"&&t.waitUntil(l())});async function l(){const t=await caches.open(c),s=await t.keys();for(const a of s)try{const n=await fetch(a);n&&n.status===200&&n.type==="basic"&&await t.put(a,n)}catch(n){console.error("Sync failed for",a.url,n)}}self.addEventListener("periodicsync",t=>{t.tag==="update-cache"&&t.waitUntil(l())});
+import { build, files } from '$service-worker';
+
+const CACHE_PREFIX = 'sudokit-cache-';
+const CACHE_VERSION = '1';
+const CACHE = `${CACHE_PREFIX}${CACHE_VERSION}`;
+
+const ASSETS_TO_CACHE = ['/', ...build, ...files];
+
+self.addEventListener('install', (event) => {
+	event.waitUntil(
+		caches.open(CACHE).then((cache) => {
+			return cache.addAll(ASSETS_TO_CACHE);
+		})
+	);
+});
+
+self.addEventListener('activate', (event) => {
+	event.waitUntil(
+		caches.keys().then((keys) => {
+			return Promise.all(
+				keys.map((key) => {
+					if (key.startsWith(CACHE_PREFIX) && key !== CACHE) {
+						return caches.delete(key);
+					}
+				})
+			);
+		})
+	);
+});
+
+self.addEventListener('fetch', (event) => {
+	if (event.request.method !== 'GET') return;
+	if (event.request.url.startsWith('chrome-extension://')) return;
+	event.respondWith(
+		caches.match(event.request).then((cachedResponse) => {
+			if (cachedResponse) {
+				return cachedResponse;
+			}
+
+			return fetch(event.request)
+				.then((response) => {
+					if (!response || response.status !== 200 || response.type !== 'basic') {
+						return response;
+					}
+
+					const responseToCache = response.clone();
+					caches.open(CACHE).then((cache) => {
+						cache.put(event.request, responseToCache).then((r) => r);
+					});
+
+					return response;
+				})
+				.catch(() => {
+					return caches.match('/');
+				});
+		})
+	);
+});
+
+self.addEventListener('sync', (event) => {
+	if (event.tag === 'sync-updates') {
+		event.waitUntil(syncData());
+	}
+});
+
+async function syncData() {
+	const cache = await caches.open(CACHE);
+	const requests = await cache.keys();
+
+	for (const request of requests) {
+		try {
+			const response = await fetch(request);
+			if (response && response.status === 200 && response.type === 'basic') {
+				await cache.put(request, response);
+			}
+		} catch (error) {
+			console.error('Sync failed for', request.url, error);
+		}
+	}
+}
+
+self.addEventListener('periodicsync', (event) => {
+	if (event.tag === 'update-cache') {
+		event.waitUntil(syncData());
+	}
+});
