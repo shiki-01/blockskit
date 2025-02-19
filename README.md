@@ -1,38 +1,27 @@
-# sv
+# Blockskit
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+## はじめに
 
-## Creating a project
+このリポジトリは、「フレームワークってこんなことできるよ」「 TypeScript はここまでできたらいいね！」というサンプルのために作られたものです。
 
-If you're seeing this, you've probably already done this step. Congrats!
+HTML などを学習し終えて行き悩んでいる場合はぜひ一通り見てみてください。
 
-```bash
-# create a new project in the current directory
-npx sv create
+## ファイル構造
 
-# create a new project in my-app
-npx sv create my-app
 ```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+/Blockskit
+┣ /.idea            IDE の設定用フォルダです。無視でいいので中身は割愛します。
+┣ /src              プロジェクトのコードを書いていく一番頭。 `source` の略
+┣ .gitignore        Git にアップロードしたくないフォルダ・ファイルを指定する。秘密鍵等は公開してはいけないものだから `.env` ファイルに書いておいてここに `.env` にファイル名をかく。
+┣ .npmrc            npm の設定ファイルの一つ。
+┣ .nvmrc            npm のバージョンを指定するもの。バージョンが違うと動かないことがあるからそれを防ぐ。
+┣ .pettierignore    pettier という機能を適応させないファイルの設定。適応させても意味ないもの等を含めておく。
+┣ .pettierrc        pettier という機能の設定。 pettier はソースコードのルールやフォーマットの設定をしてくれる機能。
+┣ eslint.config.js  eslint という機能の設定。 pettier とほとんど一緒。
+┣ package-lock.json npm で入れたものの詳細がかかれる。基本的に自分で編集することはない。
+┣ package.json      npm の設定ファイル。プロジェクトに入ってるパッケージの一覧やコマンドの設定が書かれている。
+┣ README.md
+┣ svelte.config.js
+┣ tsconfig.json
+┗ vite.config.ts
 ```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
